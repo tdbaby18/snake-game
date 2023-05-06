@@ -1,77 +1,68 @@
-// 定义画布和画笔
-var canvas = document.getElementById("canvas");
-var ctx = canvas.getContext("2d");
+// 创建画布和蛇的起始位置
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const snake = [{ x: 0, y: 0 }];
 
-// 定义蛇的初始位置和大小
-var snakeSize = 10;
-var snake = [
-  { x: 50, y: 50 },
-  { x: 40, y: 50 },
-  { x: 30, y: 50 },
-  { x: 20, y: 50 }
-];
+// 定义蛇的移动方向
+let direction = 'right';
 
-// 定义食物的位置
-var food = { x: 0, y: 0 };
+// 创建食物的位置
+let food = { x: Math.floor(Math.random() * canvas.width), y: Math.floor(Math.random() * canvas.height) };
 
-// 在画布上绘制蛇和食物
-function draw() {
+// 定义游戏循环
+function gameLoop() {
+  // 清空画布
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#00FF00";
-  for (var i = 0; i < snake.length; i++) {
-    ctx.fillRect(snake[i].x, snake[i].y, snakeSize, snakeSize);
+
+  // 绘制蛇
+  for (let i = 0; i < snake.length; i++) {
+    ctx.fillRect(snake[i].x, snake[i].y, 10, 10);
   }
-  ctx.fillStyle = "#FF0000";
-  ctx.fillRect(food.x, food.y, snakeSize, snakeSize);
+
+  // 绘制食物
+  ctx.fillRect(food.x, food.y, 10, 10);
+
+  // 移动蛇的头部
+  const head = { x: snake[0].x, y: snake[0].y };
+  if (direction === 'up') {
+    head.y -= 10;
+  } else if (direction === 'down') {
+    head.y += 10;
+  } else if (direction === 'left') {
+    head.x -= 10;
+  } else if (direction === 'right') {
+    head.x += 10;
+  }
+
+  // 添加新的头部
+  snake.unshift(head);
+
+  // 判断是否吃到食物
+  if (head.x === food.x && head.y === food.y) {
+    food = { x: Math.floor(Math.random() * canvas.width), y: Math.floor(Math.random() * canvas.height) };
+  } else {
+    // 移除尾部
+    snake.pop();
+  }
+
+  // 判断游戏是否结束
+  if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || snake.some((part, index) => index !== 0 && part.x === head.x && part.y === head.y)) {
+    alert('Game Over!');
+    clearInterval(intervalId);
+  }
 }
 
-// 更新蛇的位置
-function update() {
-  for (var i = snake.length - 1; i > 0; i--) {
-    snake[i].x = snake[i - 1].x;
-    snake[i].y = snake[i - 1].y;
-  }
-  snake[0].x += snakeSize;
-  if (snake[0].x >= canvas.width) {
-    snake[0].x = 0;
-  }
-}
-
-// 生成新的食物位置
-function generateFood() {
-  food.x = Math.floor(Math.random() * canvas.width / snakeSize) * snakeSize;
-  food.y = Math.floor(Math.random() * canvas.height / snakeSize) * snakeSize;
-}
-
-// 判断是否吃到食物
-function checkFood() {
-  if (snake[0].x === food.x && snake[0].y === food.y) {
-    snake.push({ x: snake[snake.length - 1].x, y: snake[snake.length - 1].y });
-    generateFood();
-  }
-}
-
-// 主循环
-function main() {
- // 监听键盘事件
-document.addEventListener("keydown", function (event) {
-  if (event.keyCode === 37 && direction !== "right") {
-    direction = "left";
-  } else if (event.keyCode === 38 && direction !== "down") {
-    direction = "up";
-  } else if (event.keyCode === 39 && direction !== "left") {
-    direction = "right";
-  } else if (event.keyCode === 40 && direction !== "up") {
-    direction = "down";
+// 监听键盘事件，改变蛇的方向
+document.addEventListener('keydown', event => {
+  if (event.code === 'ArrowUp' && direction !== 'down') {
+    direction = 'up';
+  } else if (event.code === 'ArrowDown' && direction !== 'up') {
+    direction = 'down';
+  } else if (event.code === 'ArrowLeft' && direction !== 'right') {
+    direction = 'left';
+  } else if (event.code === 'ArrowRight' && direction !== 'left') {
+    direction = 'right';
   }
 });
 
-// 定义蛇的移动方向
-var direction = "right";
-
-// 定时器，每100毫秒更新一次游戏
-setInterval(function () {
-  update();
-  checkFood();
-  draw();
-}, 100);
+// 开始游戏
